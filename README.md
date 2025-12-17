@@ -44,18 +44,25 @@ You can tune the visuals using various command-line arguments:
 *   `--speed <float>`: Global speed multiplier for movement and drift. Default is 1.0.
 *   `--complexity <float>`: Multiplier for visual density (e.g., number of lines, particles). Default is 1.0.
 
-### Example Command
-Generate a 30-second clip from minute 1:00, with high complexity and sensitivity:
+### Comprehensive Example
+Here is a command that uses **every possible customization option** available:
 
 ```bash
 uv run src/audio_reactive_playground/main.py \
     --audio "my_track.mp3" \
-    --start 60 --end 90 \
+    --start 60.0 \
+    --end 90.0 \
+    --output "final_render.mp4" \
     --kick_threshold 0.8 \
-    --complexity 1.5 \
-    --speed 1.2 \
-    --output "visuals_high_impact.mp4"
+    --speed 0.5 \
+    --complexity 0.8
 ```
+
+This specific command will:
+1.  Process `my_track.mp3` from **1:00 to 1:30**.
+2.  Save the result to `final_render.mp4`.
+3.  **Gate the audio reaction**: Only kicks louder than 80% volume will trigger effects (`--kick_threshold 0.8`).
+4.  **Chill Mode**: Run at **half speed** (`--speed 0.5`) and **reduced density** (`--complexity 0.8`) for a cleaner, calmer look.
 
 ## Visual Modules
 

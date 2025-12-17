@@ -17,9 +17,8 @@ echo "Rendering 10s clip from $INPUT_FILE..."
 $PYTHON_CMD -m audio_reactive_playground.main \
     --audio "$INPUT_FILE" \
     --start 240 \
-    --end 250 \
+    --end 270 \
     --output "$OUTPUT_FILE" \
-    --kick_threshold 0.9 \
-    --speed 0.3
+    --kick_threshold 0.9
 
 echo "Done! Output at $OUTPUT_FILE"
