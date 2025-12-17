@@ -1,0 +1,17 @@
+[project]
+name = "audio-reactive-playground"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "moviepy",
+    "librosa",
+    "numpy",
+    "soundfile",
+    "scipy",
+    "pillow",
+]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
