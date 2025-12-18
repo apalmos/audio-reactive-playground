@@ -24,6 +24,13 @@ class AudioAnalyzer:
         
         # Pre-compute energy tracks
         self._compute_energy_tracks()
+        
+        # Beat Tracking
+        self.bpm, self.beat_frames = librosa.beat.beat_track(y=self.y, sr=self.sr, hop_length=self.hop_length)
+        # librosa 0.10+ returns bpm as array sometimes
+        if isinstance(self.bpm, np.ndarray):
+             self.bpm = self.bpm.item() if self.bpm.size > 0 else 120.0
+        print(f"  > Detected BPM: {self.bpm:.1f}")
 
     def _compute_energy_tracks(self):
         # Define masks
@@ -66,6 +73,23 @@ class AudioAnalyzer:
         self.smooth_mid = gaussian_filter1d(self.raw_mid, sigma=4)
         self.smooth_high = gaussian_filter1d(self.raw_high, sigma=3)
 
+        # --- NEW: ACCENT DETECTION (Onsets) ---
+        # Calculate Onset Strength (transients) using librosa
+        onset_env = librosa.onset.onset_strength(y=self.y, sr=self.sr, hop_length=self.hop_length)
+        
+        # Normalize Onset Envelope
+        # We want "Peaks" to stand out.
+        ref_onset = np.percentile(onset_env, 99) # Top 1% are hits
+        if ref_onset > 0:
+            onset_norm = onset_env / ref_onset
+            onset_norm = np.clip(onset_norm, 0, 1.2) # Allow slight overdrive but mostly 0-1
+        else:
+            onset_norm = onset_env
+            
+        # We don't want too much smoothing here, we want the HIT.
+        # Maybe tiny bit to widen the visual window.
+        self.accent_track = gaussian_filter1d(onset_norm, sigma=1) 
+
     def get_energy_at_time(self, time):
         """Returns dictionary of {bass, mid, high} energy at given time"""
         frame_idx = librosa.time_to_frames(time, sr=self.sr, hop_length=self.hop_length, n_fft=self.n_fft)
@@ -76,5 +100,13 @@ class AudioAnalyzer:
         return {
             "bass": self.smooth_bass[frame_idx],
             "mid": self.smooth_mid[frame_idx],
-            "high": self.smooth_high[frame_idx]
+            "high": self.smooth_high[frame_idx],
+            "accent": self.accent_track[frame_idx] if frame_idx < len(self.accent_track) else 0.0
         }
+
+    def get_beat_index(self, time):
+        """Returns the cumulative beat count at the given time."""
+        frame_idx = librosa.time_to_frames(time, sr=self.sr, hop_length=self.hop_length, n_fft=self.n_fft)
+        # Count how many beat_frames are <= cur_frame
+        # np.searchsorted finds the index where frame_idx would be inserted
+        return np.searchsorted(self.beat_frames, frame_idx)

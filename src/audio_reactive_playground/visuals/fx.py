@@ -11,38 +11,31 @@ class TunnelEffect(VisualModule):
     - `z` coordinate loops (modulo) to create infinite forward motion.
     
     **Audio Reactivity**:
+    - **No Spin**: Tunnel is stable orientation.
+    - **Warp**: High energy causes vertices to distort towards center (implosion effect).
     - **Speed**: Tunnel moves faster with audio energy.
     - **Brightness**: Rings flash on kicks.
     """
     def __init__(self, key=None, color=(100, 100, 255), speed=1.0, sides=4, center=(0.5, 0.5), drift=(0.0, 0.0)):
         super().__init__(key, center, drift)
         self.color = color
-        self.speed = speed # TUNING: Default speed reduced in main (was 2.0) but here 1.0 is safer baseline
+        self.speed = speed 
         self.sides = sides
         self.offset = 0
         
-    def draw(self, draw, w, h, t, energy_levels):
+    def draw(self, draw, w, h, t, energy_levels, opacity=1.0):
         energy = energy_levels.get(self.key, 0)
         cx, cy = self.get_coords(w, h)
         
         # Move tunnel forward endlessly
-        # TUNING: Damped energy influence 50 -> 30
         self.offset += (self.speed * 2) + (energy * 30)
         
         num_rings = 10
-        spacing = 200
         
         for i in range(num_rings):
-            # Calculate z based on offset phase
-            # We want z to go from 1000 down to 10
-            # (i * spacing) is fixed steps
-            # (self.offset % spacing) creates the motion
-            
             base_z = 1000.0 - (i * 100)
-            # Apply movement
             z = base_z - (self.offset % 100) 
             
-            # This is a bit simplistic loop logic, but works for effect
             if z <= 10: continue
             
             scale = 500 / z 
@@ -50,20 +43,25 @@ class TunnelEffect(VisualModule):
             
             if r > min(w, h) * 1.5 or r < 5: continue
             
-            # Rotate with time
-            rot_angle = t * 0.5 + (i * 0.1)
+            # Fixed Rotation (No Spin) + Drift (User req)
+            rot_angle = i * 0.05 + (t * 0.2)
             
             points = []
             for v in range(self.sides):
                 angle = rot_angle + (v * 2 * math.pi / self.sides)
-                px = cx + math.cos(angle) * r
-                py = cy + math.sin(angle) * r
+                
+                # Warp: Energy pulls vertices in/out
+                warp = math.sin(t * 10 + v) * 20 * energy
+                
+                px = cx + math.cos(angle) * (r + warp)
+                py = cy + math.sin(angle) * (r + warp)
                 points.append((px, py))
             
             # Brightness fades with depth
             brightness = max(0, min(1.0, (1000 - z) / 1000))
             if z < 300 and energy > 0.8: brightness = 0.8 # Cap brightness
             
+            brightness *= opacity
             c = tuple(int(x * brightness) for x in self.color)
             draw.polygon(points, outline=c, width=2)
 
@@ -82,7 +80,7 @@ class FlashEffect(VisualModule):
         super().__init__(key) # Global
         self.color = color
         
-    def draw(self, draw, w, h, t, energy_levels):
+    def draw(self, draw, w, h, t, energy_levels, opacity=1.0):
         energy = energy_levels.get(self.key, 0)
         
         # TUNING: Raised threshold 0.8 -> 0.9 to make flashes rare events
@@ -90,7 +88,7 @@ class FlashEffect(VisualModule):
             border = int(60 * energy) # TUNING: Reduced max border width 100 -> 60
             for i in range(10):
                  inset = i * 2
-                 alpha_sim = 0.6 - (i / 20.0) # TUNING: Reduced max opacity 1.0 -> 0.6
+                 alpha_sim = (0.6 - (i / 20.0)) * opacity # Tuning and opacity
                  c = tuple(int(x * alpha_sim) for x in self.color)
                  draw.rectangle([inset, inset, w-inset, h-inset], outline=c, width=int(border/10))
         # TUNING: Removed the secondary "medium energy" flash completely for calmness
@@ -114,7 +112,7 @@ class ParticleBurst(VisualModule):
         self.particles = [] 
         self.last_energy = 0
         
-    def draw(self, draw, w, h, t, energy_levels):
+    def draw(self, draw, w, h, t, energy_levels, opacity=1.0):
         energy = energy_levels.get(self.key, 0)
         cx, cy = self.get_coords(w, h)
         
@@ -137,7 +135,7 @@ class ParticleBurst(VisualModule):
             life -= 0.05
             
             if life > 0:
-                c = tuple(int(x * life) for x in self.color)
+                c = tuple(int(x * life * opacity) for x in self.color)
                 r = 3 * life
                 draw.ellipse([x-r, y-r, x+r, y+r], fill=c)
                 new_particles.append([x, y, vx, vy, life])

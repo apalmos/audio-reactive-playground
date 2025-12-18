@@ -6,8 +6,8 @@ A Python-based audio visualization tool that generates artful, decentralized, an
 
 *   **Audio Reactive**: Reacts to bass, mid, and high frequencies with specific visual triggers.
 *   **Scene Evolution**: Visuals change every 8 seconds, ensuring a dynamic experience that never gets boring.
-*   **Decentralized**: Shapes float, drift, and spawn across the entire screen, breaking away from traditional center-focused visualizers.
-*   **Artful Modules**: includes `SuperShape` (organic blobs), `MoirePattern` (interference), `CrossHatch` (multiplying lines), `TunnelEffect` (infinite 3D tunnels), and more.
+*   **Minimalist & Slick**: Shapes are curated to avoid clutter. A smart "Slot System" ensures meaningful layering (Background + Hero + Texture) without visual chaos.
+*   **Artful Modules**: includes `WaveTerrain` (Joy Division style), `GodRays` (Volumetric Light), `RippleSystem` (Rain), `SuperShape` (Organic), and more.
 *   **Post-Processing**: Includes Glitch effects, Kaleidoscope mirroring, and video feedback trails.
 
 ## Installation
@@ -41,8 +41,9 @@ You can tune the visuals using various command-line arguments:
 *   `--start <seconds>`: Start processing audio from this timestamp.
 *   `--end <seconds>`: Stop processing at this timestamp.
 *   `--kick_threshold <0.0-1.0>`: Sensitivity of the bass reaction. Higher (e.g., 0.7-0.9) means only strong kicks trigger effects. Lower (0.4) captures more bass.
-*   `--speed <float>`: Global speed multiplier for movement and drift. Default is 1.0.
-*   `--complexity <float>`: Multiplier for visual density (e.g., number of lines, particles). Default is 1.0.
+*   `--speed <float>`: Global speed multiplier. Default is 0.3 (Slower/Chill).
+*   `--complexity <float>`: Multiplier for visual density. Default is 0.3 (Minimal).
+*   `--bars <int>`: Number of musical bars (4 beats) between visual scene swaps. Default is 8.
 
 ### Comprehensive Example
 Here is a command that uses **every possible customization option** available:
@@ -55,23 +56,33 @@ uv run src/audio_reactive_playground/main.py \
     --output "final_render.mp4" \
     --kick_threshold 0.8 \
     --speed 0.5 \
-    --complexity 0.8
+    --complexity 0.4 \
+    --bars 16
 ```
-
-This specific command will:
-1.  Process `my_track.mp3` from **1:00 to 1:30**.
-2.  Save the result to `final_render.mp4`.
-3.  **Gate the audio reaction**: Only kicks louder than 80% volume will trigger effects (`--kick_threshold 0.8`).
-4.  **Chill Mode**: Run at **half speed** (`--speed 0.5`) and **reduced density** (`--complexity 0.8`) for a cleaner, calmer look.
 
 ## Visual Modules
 
-The `SceneController` randomly selects from a pool of modules:
+The `SceneController` randomly selects a composition of **1-3** modules to keep it clean:
 
-*   **CirclePulse**: A classic pulsing circle reacting to bass.
-*   **TunnelEffect**: An infinite 3D tunnel that speeds up on kicks.
-*   **SuperShape**: Organic, morphing math-based shapes.
+**Atmosphere & Backgrounds**:
+*   **WaveTerrain**: Rolling landscape lines (Joy Division style) with random zoom.
+*   **GodRays**: Subtle volumetric light beams rotating in the background.
+*   **RippleSystem**: Minimalist rain-like ripples.
+*   **ScanLines**: Retro CRT monitor overlay.
+*   **ParticleDust**: Floating ambient dust.
+*   **TunnelEffect**: Infinite 3D wireframe tunnel.
+
+**Hero Geometry**:
+*   **SuperShape**: Organic, morphing math-based blobs.
+*   **LissajousCurve**: Complex parametric curves.
+*   **PlatonicSolids**: Rotating 3D shapes (Icosahedron, Cube).
+*   **DNAStrand**: Twisting double helix.
+*   **PolyrhythmShapes**: Orbiting geometric shapes.
+*   **Strange Attractor**: Chaos theory particle clouds.
+
+**Texture & Patterns**:
+*   **FlowField**: Particle systems driven by noise.
+*   **HexGrid**: Pulsing honeycomb interface.
+*   **TruchetTiles**: Retro geometric tiling patterns.
 *   **MoirePattern**: Trippy interference patterns.
-*   **CrossHatch**: Sketchy lines that multiply and cross on beat.
-*   **RoamingGeometry**: "Meteor" shapes that fly across the screen.
-*   **FlowField**: Particle systems driven by perlin-like noise.
+*   **DifferentialLine**: Organic coral growth simulation.

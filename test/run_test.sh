@@ -13,12 +13,19 @@ fi
 INPUT_FILE="test/input/Palmos - Helix.wav" # replace with your audio file
 OUTPUT_FILE="test/output/helix_visuals.mp4" # replace with your output file
 
+# Visual Settings
+BARS=4 # Change this to 4, 16, 32 etc. to change how often the scene evolves
+KICK_THRESHOLD=0.9
+COMPLEXITY=0.5
+
 echo "Rendering 10s clip from $INPUT_FILE..."
 $PYTHON_CMD -m audio_reactive_playground.main \
     --audio "$INPUT_FILE" \
-    --start 240 \
-    --end 270 \
+    --start 150 \
+    --end 180 \
     --output "$OUTPUT_FILE" \
-    --kick_threshold 0.9
+    --kick_threshold $KICK_THRESHOLD \
+    --complexity $COMPLEXITY \
+    --bars $BARS
 
 echo "Done! Output at $OUTPUT_FILE"

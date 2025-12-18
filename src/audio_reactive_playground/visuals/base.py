@@ -42,7 +42,7 @@ class VisualModule(ABC):
         return int(self.center[0] * w), int(self.center[1] * h)
     
     @abstractmethod
-    def draw(self, draw: ImageDraw.ImageDraw, w, h, t, energy_levels):
+    def draw(self, draw: ImageDraw.ImageDraw, w, h, t, energy_levels, opacity=1.0):
         """
         Main draw loop called every frame.
         
@@ -51,5 +51,6 @@ class VisualModule(ABC):
             w, h: Width and Height of the canvas.
             t: Current timestamp in seconds.
             energy_levels: Dictionary of audio energy {'bass': 0.5, 'mid': 0.2 ...}
+            opacity: Float 0.0-1.0 for crossfade transitions.
         """
         pass

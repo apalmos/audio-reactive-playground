@@ -28,6 +28,8 @@ output.mp4
 test_audio.wav
 *.mp3
 *TEMP_MPY*
-test/output/helix_visuals.mp4
-test/input/Palmos - Helix.wav
+test/output/*
+test/input/*
 !test/input/test_audio.wav
+.DS_Store
+test/.DS_Store
