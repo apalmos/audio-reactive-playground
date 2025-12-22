@@ -21,42 +21,49 @@ class CirclePulse(VisualModule):
         
     def draw(self, draw, w, h, t, energy_levels, opacity=1.0):
         energy = energy_levels.get(self.key, 0)
-        # KICK CURVE: Exponential response for punchy kicks
+        # KICK CURVE
         energy = energy ** 2.0 
         
         cx, cy = self.get_coords(w, h)
         
-        # IDLE STATE: Always breathe slightly so we aren't a dead dot
-        idle_breath = 0.15 + 0.05 * math.sin(t * 2.0)
+        # IDLE: Breathe
+        idle_breath = 0.15 + 0.05 * math.sin(t * 1.5)
         
-        # Base pulsing circle
-        # Combine Audio Energy with Idle Breath
-        # If energy is low, we settle at idle state.
         active_ratio = self.max_radius_ratio * energy 
         target_ratio = max(idle_breath, active_ratio)
         
         radius = int(min(w, h) * target_ratio)
-        radius = max(min(w,h)*0.1, radius) # Absolute min 10% screen size
-        radius = min(radius, max(w,h)) # Safety Cap
+        if radius < 5: radius = 5
         
-        # Draw concentric rings expansion
-        for i in range(4): # Added one more ring
-            # Rings travel outwards slightly?
-            # Or just fixed ratios
-            r = radius * (1.0 + i * 0.4) 
+        # Draw concentric rings expansion (Always moving)
+        # Phase shift based on time so they "flow" outwards constantly
+        points = 5
+        for i in range(points):
+            # Constant outward flow: (t + offset) % 1.0
+            phase = (t * 0.4 + i / points) % 1.0
             
-            # Opacity fades as we go out
-            ring_alpha = 1.0 / (i + 1)
+            # Radius grows with phase
+            r = radius + (min(w, h) * 0.45) * phase
+            
+            # Opacity fades as it goes out (1.0 -> 0.0)
+            alpha = (1.0 - phase) * opacity
             
             c_list = list(self.color)
             if len(c_list) == 3: c_list.append(255)
+            # Modulate color brightness slightly with energy
+            bright = 1.0 + energy if i == 0 else 1.0
             
-            final_alpha = c_list[3] * ring_alpha * opacity
-            c = tuple(c_list[:3] + [int(final_alpha)])
+            final_c = tuple([int(min(255, c * bright)) for c in c_list[:3]] + [int(c_list[3] * alpha)])
             
             x0, y0 = cx - r, cy - r
             x1, y1 = cx + r, cy + r
-            draw.ellipse([x0, y0, x1, y1], outline=c, width=3)
+            
+            # Center ring is solid-ish if energy high
+            width = 2
+            if i == 0 and energy > 0.2:
+                 draw.ellipse([x0, y0, x1, y1], outline=final_c, width=4)
+            else:
+                 draw.ellipse([x0, y0, x1, y1], outline=final_c, width=width)
 
 class PolyrhythmShapes(VisualModule):
     """

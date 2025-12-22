@@ -10,8 +10,8 @@ if [ ! -f "$PYTHON_CMD" ]; then
     exit 1
 fi
 
-INPUT_FILE="test/input/Palmos - Helix.wav" # replace with your audio file
-OUTPUT_FILE="test/output/helix_visuals.mp4" # replace with your output file
+INPUT_FILE="test/input/Palmos - inotrope.wav" # replace with your audio file
+OUTPUT_FILE="test/output/inotrope_visuals.mp4" # replace with your output file
 
 # Visual Settings
 BARS=4 # Change this to 4, 16, 32 etc. to change how often the scene evolves
@@ -21,8 +21,8 @@ COMPLEXITY=0.5
 echo "Rendering 10s clip from $INPUT_FILE..."
 $PYTHON_CMD -m audio_reactive_playground.main \
     --audio "$INPUT_FILE" \
-    --start 150 \
-    --end 180 \
+    --start 257 \
+    --end 287 \
     --output "$OUTPUT_FILE" \
     --kick_threshold $KICK_THRESHOLD \
     --complexity $COMPLEXITY \

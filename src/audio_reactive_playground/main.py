@@ -64,57 +64,63 @@ def generate_random_modules(palette_type):
     # helper lambda to bind palette
     get_color = lambda: get_palette_color(palette_type)
     
-    # 1. Background / Deep Layer (Tunnel, Pulse, Waves, Rays, Grid, Ripples, ScanLines, Dust)
+    # =========================================================================
+    # SLOT-BASED SELECTION (Smart Pairing)
+    # =========================================================================
+    
+    # 1. Background / Deep Layer
     # 8 Options = ~12% chance each.
     bg_roll = random.random()
+    bg_type = "strong" # default
+    
     if bg_roll < 0.125:
-        # Tunnel
+        # Tunnel - Strong
         color = to_byte(get_color())
         key = "bass"
         sides = random.randint(3, 8) 
         modules.append(TunnelEffect(key=key, color=color, speed=random.uniform(0.5, 2.0), sides=sides))
         print(f"  + Added TunnelEffect ({key}) [sides={sides}]")
     elif bg_roll < 0.25:
-        # Pulse
+        # Pulse - Medium/Strong
         color = to_byte(get_color())
         modules.append(CirclePulse(key="bass", color=color, max_radius_ratio=0.8))
         print(f"  + Added CirclePulse (bass)")
     elif bg_roll < 0.375:
-        # WaveTerrain (Random Zoom)
+        # WaveTerrain - Strong
         color = to_byte(get_color())
         zoom = random.uniform(0.8, 2.0)
         modules.append(WaveTerrain(key="bass", color=color, count=25, zoom=zoom))
         print(f"  + Added WaveTerrain (bass) [zoom={zoom:.2f}]")
     elif bg_roll < 0.50:
-        # GodRays
+        # GodRays - Weak (Atmosphere)
         color = to_byte(get_color())
         modules.append(GodRays(key="bass", color=color, count=random.randint(5, 12)))
-        print(f"  + Added GodRays (bass)")
+        bg_type = "weak"
+        print(f"  + Added GodRays (bass) [Atmosphere]")
     elif bg_roll < 0.625:
-        # CyberPlane
+        # CyberPlane - Strong
         color = to_byte(get_color())
         modules.append(CyberPlane(key="bass", color=color))
         print(f"  + Added CyberPlane (bass)")
     elif bg_roll < 0.75:
-        # RippleSystem
+        # RippleSystem - Weak (Atmosphere)
         color = to_byte(get_color())
         modules.append(RippleSystem(key="high", color=color))
-        print(f"  + Added RippleSystem (high)")
+        bg_type = "weak"
+        print(f"  + Added RippleSystem (high) [Atmosphere]")
     elif bg_roll < 0.875:
-        # ScanLines
+        # ScanLines - Weak (Texture)
         color = to_byte(get_color())
         modules.append(ScanLines(key="mid", color=color))
-        print(f"  + Added ScanLines (mid)")
+        bg_type = "weak"
+        print(f"  + Added ScanLines (mid) [Texture]")
     else:
-        # ParticleDust (Very minimal)
+        # ParticleDust - Weak (Texture)
         color = to_byte(get_color())
         modules.append(ParticleDust(key="mid", color=color))
-        print(f"  + Added ParticleDust (mid)")
+        bg_type = "weak"
+        print(f"  + Added ParticleDust (mid) [Texture]")
 
-    # =========================================================================
-    # SLOT-BASED SELECTION (Max ~3 active modules to prevent clutter)
-    # =========================================================================
-    
     # Pool of "Hero" modules (Main focus)
     hero_pool = []
     hero_pool.append(lambda: LissajousCurve(key=random.choice(["mid", "high"]), color=to_byte(get_color()), speed=0.3, complexity=random.randint(2, 5)))
@@ -138,16 +144,22 @@ def generate_random_modules(palette_type):
     texture_pool.append(lambda: BinaryRain(key="high", color=to_byte(get_color())))
     texture_pool.append(lambda: SonarRadar(key="high", color=to_byte(get_color())))
 
-    # SELECT: 1 Hero (60% chance)
-    if random.random() < 0.60:
+    # SELECT: Hero Logic
+    # If Background is WEAK, we MUST have a Hero (or at least a robust texture).
+    # If Background is STRONG, Hero is optional (60% chance).
+    
+    force_hero = (bg_type == "weak")
+    
+    if force_hero or random.random() < 0.60:
         hero_mod = random.choice(hero_pool)()
         modules.append(hero_mod)
-        print(f"  + Added Hero: {type(hero_mod).__name__}")
+        prefix = "FORCED" if force_hero else "Added"
+        print(f"  + {prefix} Hero: {type(hero_mod).__name__}")
         
-    # SELECT: 1 Texture (40% chance, or 70% if no Hero)
+    # SELECT: Texture Logic
     # If we have a hero, we want less chance of texture to avoid clash.
-    has_hero = len(modules) > 1 # Background is 0
-    chance_texture = 0.3 if has_hero else 0.7
+    has_hero = (len(modules) > 1) 
+    chance_texture = 0.3 if has_hero else 0.8 # Higher chance if no hero (rare)
     
     if random.random() < chance_texture:
         tex_mod = random.choice(texture_pool)()
@@ -156,20 +168,6 @@ def generate_random_modules(palette_type):
         
     # 4. Flash / Energy (Always independent, low chance)
     if random.random() > 0.7:
-        color = to_byte(get_color())
-        modules.append(FlashEffect(key="bass", color=color))
-        print(f"  + Added FlashEffect")
-        
-    # CyberPlane Promoted to Background layer
-    # if random.random() > 0.6:
-    #     color = to_byte(get_color())
-    #     modules.append(CyberPlane(key="bass", color=color))
-    #     print(f"  + Added CyberPlane")
-
-    # 4. Flash / Energy
-
-    # 4. Flash / Energy
-    if random.random() > 0.3:
         color = to_byte(get_color())
         modules.append(FlashEffect(key="bass", color=color))
         print(f"  + Added FlashEffect")

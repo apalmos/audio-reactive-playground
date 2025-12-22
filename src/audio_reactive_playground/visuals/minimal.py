@@ -108,27 +108,30 @@ class RippleSystem(VisualModule):
     def draw(self, draw, w, h, t, energy_levels, opacity=1.0):
         energy = energy_levels.get(self.key, 0)
         
-        # Spawn
-        if energy > 0.6 and random.random() < 0.2:
+        # Spawn logic (Energy based but with base chance)
+        spawn_chance = 0.05 + (energy * 0.4)
+        if random.random() < spawn_chance:
             self.ripples.append({
                 'x': random.randint(0, w),
                 'y': random.randint(0, h),
                 'r': 1,
-                'life': 1.0
+                'life': 1.0,
+                'max_r': random.uniform(50, 200)
             })
             
         # Update and draw
         for r in self.ripples[:]:
-            r['r'] += 2 + energy * 5
-            r['life'] -= 0.02
-            if r['life'] <= 0:
+            r['r'] += (2 + energy * 8) # Speed up on beat
+            r['life'] -= 0.015
+            
+            if r['life'] <= 0 or r['r'] > r['max_r']:
                 self.ripples.remove(r)
                 continue
             
             curr_opacity = r['life'] * opacity
             c = self.color
             if len(c) == 3: c = list(c) + [255]
-            # Override alpha
+            
             final_c = (c[0], c[1], c[2], int(c[3] * curr_opacity))
             
             draw.ellipse([r['x']-r['r'], r['y']-r['r'], r['x']+r['r'], r['y']+r['r']], outline=final_c, width=2)
@@ -148,7 +151,7 @@ class ScanLines(VisualModule):
     def draw(self, draw, w, h, t, energy_levels, opacity=1.0):
         energy = energy_levels.get(self.key, 0)
         
-        speed = h * 0.01 * (1 + energy)
+        speed = h * 0.02 * (1 + energy)
         self.y_pos = (self.y_pos + speed) % h
         
         c = self.color
@@ -156,13 +159,22 @@ class ScanLines(VisualModule):
         # Faint grid lines first
         grid_alpha = int(30 * opacity)
         grid_c = (c[0], c[1], c[2], grid_alpha)
-        for i in range(0, h, 20):
-             draw.line([0, i, w, i], fill=grid_c, width=1)
+        
+        # Grid jumps on beat
+        grid_offset = 0
+        if energy > 0.6:
+            grid_offset = random.randint(-5, 5)
+            
+        for i in range(0, h, 30):
+             y = i + grid_offset
+             draw.line([0, y, w, y], fill=grid_c, width=1)
              
         # Moving Scan Bar
-        bar_alpha = int(100 * opacity)
+        bar_alpha = int(80 * opacity)
         bar_c = (c[0], c[1], c[2], bar_alpha)
-        draw.rectangle([0, self.y_pos, w, self.y_pos + 10], fill=bar_c)
+        # Bar height grows with energy
+        h_bar = 10 + energy * 40
+        draw.rectangle([0, self.y_pos, w, self.y_pos + h_bar], fill=bar_c)
 
 class ParticleDust(VisualModule):
     """
