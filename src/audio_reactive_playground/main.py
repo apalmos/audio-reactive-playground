@@ -1,7 +1,8 @@
 import argparse
 import os
 import numpy as np
-from moviepy import VideoClip, AudioFileClip
+from moviepy import VideoClip, AudioFileClip, VideoFileClip, vfx
+
 import soundfile as sf
 import random
 import colorsys
@@ -185,6 +186,8 @@ def main():
     parser.add_argument("--complexity", type=float, default=0.3, help="Global complexity/density multiplier")
     
     parser.add_argument("--bars", type=int, default=8, help="Number of bars between scene changes (default: 8)")
+    parser.add_argument("--video", type=str, help="Path to input video file (background)")
+    parser.add_argument("--contour_mode", type=str, choices=['liquid', 'glitch', 'shatter', 'prism', 'random'], default='random', help="Force specific contour effect")
     
     args = parser.parse_args()
     
@@ -277,7 +280,38 @@ def main():
         lambda: ParticleDust(color=to_byte(get_color()), center=get_pos(), drift=get_drift()),
     ]
 
-    renderer = Renderer(analyzer, modules, fps=24, feedback=use_feedback, glitch=use_glitch, kaleidoscope=use_kaleidoscope, kick_threshold=args.kick_threshold)
+    # Process Video Background if provided
+    background_clip = None
+    if args.video and os.path.exists(args.video):
+        print(f"Loading background video: {args.video}")
+        raw_clip = VideoFileClip(args.video)
+        raw_clip = raw_clip.without_audio()
+        
+        # Retime video to match audio duration
+        if raw_clip.duration < duration:
+            # Video is shorter than audio -> Slow it down (Extend)
+            factor = raw_clip.duration / duration
+            print(f"Video ({raw_clip.duration}s) < Audio ({duration}s). Slowing down by {factor:.2f}x")
+            # moviepy v2 might use effects differently, but typically speedx works
+            background_clip = raw_clip.with_effects([vfx.MultiplySpeed(factor)])
+        else:
+            # Video is longer than audio -> Cut it
+            print(f"Video ({raw_clip.duration}s) > Audio ({duration}s). Cutting to match.")
+            background_clip = raw_clip.subclipped(0, duration)
+            
+        # Ensure exact duration match just in case floating point errors
+        background_clip = background_clip.with_duration(duration)
+        
+    # Inject Global Speed Factor
+    for mod in modules:
+        mod.speed_factor = args.speed
+
+    # Initialize Renderer
+    renderer = Renderer(analyzer, modules, fps=24, feedback=use_feedback, glitch=use_glitch, kaleidoscope=use_kaleidoscope, kick_threshold=args.kick_threshold, background_video_clip=background_clip, speed_factor=args.speed)
+    
+    if args.contour_mode != 'random':
+        renderer.contour_mode = args.contour_mode
+        print(f"  > FORCED CONTOUR MODE: {args.contour_mode.upper()}")
     
     # Enable Evolution
     # Add all standard modules to the pool (FlashEffect removed to reduce spam)

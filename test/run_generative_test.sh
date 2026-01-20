@@ -23,7 +23,6 @@ CONTOUR_MODE="shatter"
 echo "Rendering 10s clip from $INPUT_FILE..."
 $PYTHON_CMD -m audio_reactive_playground.main \
     --audio "$INPUT_FILE" \
-    --video "test/input/video.mp4" \
     --start 90 \
     --end 120 \
     --output "$OUTPUT_FILE" \

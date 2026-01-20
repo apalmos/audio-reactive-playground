@@ -44,7 +44,7 @@ class WaveformSpiral(VisualModule):
             r = base_r * expansion
             
             # Waveform jitter travels along the line
-            travel = t * 10 
+            travel = t * 10 * self.speed_factor
             wobble_x = math.sin(travel + i * 0.5) * 15 * energy * self.distortion
             wobble_y = math.cos(travel * 0.9 + i * 0.5) * 15 * energy * self.distortion
             

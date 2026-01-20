@@ -25,6 +25,7 @@ class VisualModule(ABC):
             self.key = key
         self.center = list(center)
         self.drift = drift
+        self.speed_factor = 1.0
         
     def update_center(self):
         """

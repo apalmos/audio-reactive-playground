@@ -92,14 +92,14 @@ class PolyrhythmShapes(VisualModule):
         base_r = min(w, h) * 0.35
         
         # Subtle planetary drift (User requested drift back)
-        self.rotation += 0.002
+        self.rotation += 0.002 * self.speed_factor
         
         # Smooth accumulation for morphing
-        self.param_smooth += 0.005 
+        self.param_smooth += 0.005 * self.speed_factor
         
         for i, sides in enumerate(self.shape_types):
             # Base angle + Slow Drift + Tiny sine flux
-            angle_offset = (i * 0.5) + self.rotation + math.sin(t * 0.2 + i) * 0.1
+            angle_offset = (i * 0.5) + self.rotation + math.sin(t * 0.2 * self.speed_factor + i) * 0.1
             
             color = self.colors[i % len(self.colors)]
             
@@ -109,7 +109,7 @@ class PolyrhythmShapes(VisualModule):
                 color = (int(r * opacity), int(g * opacity), int(b * opacity))
             
             # Breathing: High energy pushes vertices out
-            breath = math.sin(t * 2 + i) * 0.05 
+            breath = math.sin(t * 2 * self.speed_factor + i) * 0.05 
             size_mod = 1.0 + breath + (energy * 0.4)
             
             points = []
@@ -119,7 +119,7 @@ class PolyrhythmShapes(VisualModule):
                 angle = angle_offset + (v * 2 * math.pi / sides)
                 
                 # Morphing: Vertices wander individually based on audio
-                wobble = math.sin(t * 3 + v * 1.5) * 30 * energy
+                wobble = math.sin(t * 3 * self.speed_factor + v * 1.5) * 30 * energy
                 
                 px = cx + math.cos(angle) * (curr_r + wobble)
                 py = cy + math.sin(angle) * (curr_r + wobble)
